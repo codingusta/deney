@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yapılacaklar</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -16,7 +13,7 @@
     <header class="header">
       <p class="brand">Yapılacaklar</p>
       <h1>Bugün ne yapılacak?</h1>
-      <p class="subtitle">Görevlerini ekle, tamamla, sil — tarayıcında saklanır.</p>
+      <p class="subtitle">Ekle, tamamla, çift tıkla düzenle. Veriler tarayıcıda kalır.</p>
     </header>
 
     <form class="add-form" id="todo-form" autocomplete="off">
@@ -25,17 +22,26 @@
         type="text"
         id="todo-input"
         name="todo"
-        placeholder="Yeni görev yaz…"
+        placeholder="Yeni görev yaz, Enter ile ekle…"
         maxlength="200"
         required
       />
       <button type="submit">Ekle</button>
     </form>
 
-    <p class="meta" id="todo-meta" hidden></p>
+    <section class="toolbar" aria-label="Liste araçları">
+      <p class="counter" id="todo-counter">0 görev kaldı</p>
+      <div class="filters" role="tablist" aria-label="Görev filtresi">
+        <button type="button" class="filter-btn is-active" data-filter="all" aria-pressed="true">Hepsi</button>
+        <button type="button" class="filter-btn" data-filter="active" aria-pressed="false">Aktif</button>
+        <button type="button" class="filter-btn" data-filter="completed" aria-pressed="false">Tamamlanan</button>
+      </div>
+      <button type="button" class="clear-btn" id="clear-completed" disabled>
+        Tamamlananları temizle
+      </button>
+    </section>
 
     <ul class="todo-list" id="todo-list" aria-live="polite"></ul>
-
     <p class="empty" id="empty-state">Henüz görev yok. Yukarıdan ekleyebilirsin.</p>
   </main>
 
