@@ -2,23 +2,31 @@ const STORAGE_KEY = "proje2-todos";
 
 const form = document.getElementById("todo-form");
 const input = document.getElementById("todo-input");
+const priorityInput = document.getElementById("todo-priority");
 const list = document.getElementById("todo-list");
 const emptyState = document.getElementById("empty-state");
 const counter = document.getElementById("todo-counter");
 const clearBtn = document.getElementById("clear-completed");
 const filterButtons = document.querySelectorAll(".filter-btn");
 
-/** @typedef {{ id: string, text: string, done: boolean }} Todo */
+/** @typedef {{ id: string, text: string, done: boolean, priority: string }} Todo */
 
 function loadTodos() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isValidTodo);
+    return parsed.filter(isValidTodo).map((todo) => ({
+      ...todo,
+      priority: isPriority(todo.priority) ? todo.priority : "medium",
+    }));
   } catch {
     return [];
   }
+}
+
+function isPriority(priority) {
+  return ["low", "medium", "high"].includes(priority);
 }
 
 function isValidTodo(item) {
@@ -145,13 +153,16 @@ function commitEdit(todo, item, editor) {
 
 function createTodoElement(todo) {
   const item = document.createElement("li");
-  item.className = `todo-item${todo.done ? " done" : ""}`;
+  item.className = `todo-item${todo.done ? " done" : ""} priority-${todo.priority}`;
   const label = document.createElement("span");
   label.className = "todo-text";
   label.textContent = todo.text;
   label.title = "Düzenlemek için çift tıkla";
   label.addEventListener("dblclick", () => startEdit(todo, item));
-  item.append(createCheckbox(todo), label, createDeleteButton(todo));
+  const priority = document.createElement("span");
+  priority.className = "priority-label";
+  priority.textContent = { low: "Düşük", medium: "Orta", high: "Yüksek" }[todo.priority];
+  item.append(createCheckbox(todo), label, priority, createDeleteButton(todo));
   return item;
 }
 
@@ -164,7 +175,7 @@ form.addEventListener("submit", (event) => {
   event.preventDefault();
   const text = input.value.trim();
   if (!text) return;
-  todos = [{ id: createId(), text, done: false }, ...todos];
+  todos = [{ id: createId(), text, done: false, priority: priorityInput.value }, ...todos];
   input.value = "";
   persist();
   input.focus();

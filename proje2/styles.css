@@ -12,6 +12,12 @@
   --danger-soft: rgba(179, 58, 58, 0.08);
   --on-accent: #fff;
   --done: #6b7c8f;
+  --priority-low: #39734d;
+  --priority-low-bg: #e8f3e9;
+  --priority-medium: #806018;
+  --priority-medium-bg: #f8f0d9;
+  --priority-high: #a43838;
+  --priority-high-bg: #f9e7e5;
   --line: rgba(26, 35, 50, 0.12);
   --shadow: 0 16px 40px rgba(26, 35, 50, 0.08);
   --radius: 16px;
@@ -59,7 +65,8 @@ body {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -76,6 +83,7 @@ input:focus-visible {
 
 .brand {
   margin: 0 0 0.5rem;
+  text-align: center;
   font-size: clamp(1.9rem, 5vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -119,6 +127,16 @@ input:focus-visible {
   font-size: 1rem;
   color: var(--ink);
   outline: none;
+}
+
+.add-form select {
+  max-width: 9.5rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.4rem 0.55rem;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
 }
 
 .add-form input::placeholder {
@@ -240,6 +258,29 @@ input:focus-visible {
   cursor: text;
 }
 
+.priority-label {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.priority-low .priority-label {
+  color: var(--priority-low);
+  background: var(--priority-low-bg);
+}
+
+.priority-medium .priority-label {
+  color: var(--priority-medium);
+  background: var(--priority-medium-bg);
+}
+
+.priority-high .priority-label {
+  color: var(--priority-high);
+  background: var(--priority-high-bg);
+}
+
 .todo-edit {
   flex: 1;
   min-width: 0;
@@ -290,6 +331,12 @@ input:focus-visible {
   .add-form,
   .filters {
     flex-direction: column;
+  }
+
+  .add-form select {
+    max-width: none;
+    width: 100%;
+    min-height: 44px;
   }
 
   .add-form button,
