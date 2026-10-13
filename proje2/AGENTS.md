@@ -1,26 +1,39 @@
 # Proje özeti
-- `proje2`, görev ekleme, tamamlama, silme, çift tıklayarak düzenleme ve filtreleme yapan tarayıcı tabanlı bir yapılacaklar uygulamasıdır.
-- `index.html` erişilebilir formu, filtreleri ve liste iskeletini; `styles.css` görünümü; `script.js` görev davranışlarını ve `localStorage` kaydını içerir.
-- `KURALLAR.md` proje için mevcut kuralları açıklar; bu dosyayı değiştirme.
+- `proje2`, görevleri tarayıcıda saklayan ve yeni görevleri kural tabanlı LangGraph akışında analiz eden yapılacaklar uygulamasıdır.
+- Next.js App Router görev arayüzünü, Flask ise yalnızca `/api/analiz` ve `/api/graf` JSON uçlarını sağlar.
+- `KURALLAR.md` proje kurallarını içerir; bu dosyayı değiştirme.
 
 # Dosya yapısı ve kod stili
-- HTML, CSS ve JavaScript ayrı dosyalarda kalsın; JS camelCase, CSS sınıfları kebab-case kullansın.
-- Fonksiyonları kısa tut; DOM oluşturma, kayıt ve çizim sorumluluklarını ayrı fonksiyonlarda tut.
-- `const`/`let` kullan; `var` kullanma. Gerekli tip ve dışarı açık fonksiyonlar için kısa JSDoc ekle.
-- Kullanıcı metnini DOM'a `textContent` ile aktar; `innerHTML` kullanma.
+- `app/layout.jsx` sayfa kabuğunu, `app/page.jsx` bileşen düzenini, `app/useTodoApp.js` görev akışını ve `app/globals.css` temel/responsive stilleri içerir.
+- `server.py` Flask API'sini, `graph.py` LangGraph akışını, `next.config.mjs` API proxy'sini tanımlar.
+- `package.json` npm bağımlılıklarını; `requirements.txt` Python bağımlılıklarını sabit sürümle tutar; gerekçeler `README.md` içinde yazılır.
+- UI'ı bileşen ve fonksiyonlara göre ayır; JS adlarında camelCase, CSS sınıflarında kebab-case kullan.
+- Fonksiyonları kısa ve tek sorumluluklu tut; kullanıcı metnini React metin düğümleriyle göster, `innerHTML` kullanma.
+- API testlerini `tests/`, gerçek tarayıcı E2E testlerini `e2e/` altında tut.
 
 # Arayüz kuralları
-- Ana sütun `min(560px, calc(100% - 2rem))` genişliğinde; kart/form aralıkları en az `0.55rem` olsun.
-- Renk değişkenlerini `:root` içinde tanımla; ana vurgu `--accent: #0d7a6f`, metin `--ink`, hata `--danger`, zemin `--paper` olsun.
-- 480px altında form ve filtreler dikey, butonlar tam genişlik ve en az 44px yüksek olsun.
-- Her butonda `type` ve görünür metin veya `aria-label`; klavye odağında `--accent` halkası olsun.
-- Checkbox ve silme kontrolü en az 24px tıklama alanı sunsun; öncelikler renkli ve metin etiketli olsun.
+- App Router arayüzünü responsive tut; 600px altında form ve araç çubukları dikey sıralanır.
+- Renkleri `app/globals.css` değişkenlerinde tanımla; arayüz koyu temada açılır ve net klavye odağı sağlar.
+- Her butonun `type` ve görünen metni veya `aria-label` değeri olsun; dokunmatik kontroller en az 44px yüksek olsun.
+- Görev önceliği renk yanında metinle de belirtilsin; mobilde yatay taşmayı önle.
 
 # Veri kuralları
-- Kayıt anahtarı `proje2-todos` olarak kalmalı; görev alanları `id`, `text`, `done` ve `priority` olmalı.
-- `priority` yalnızca `low`, `medium`, `high`; eski kayıtlarda eksikse `medium` kabul et.
-- `trim()` sonrası boş görev ekleme/kaydetme; bozuk JSON'u boş dizi kabul et.
+- Tek `localStorage` anahtarı `proje2-todos` kalır; kayıt zarfı sürümü, görevleri, temayı ve günlük tamamlanma sayılarını taşır.
+- Eski görev dizisini otomatik taşı; `id`, `text`, `done`, `priority` ve analiz sonuçlarını koru.
+- Analiz `analysis`, `analysisError`, `analysisAttempted` alanlarında tutulur; son tarih, etiket ve sıra da görev kaydında saklanır.
+- `priority` yalnızca `low`, `medium`, `high`; eksik öncelik `medium`, tema `dark` veya `light` ve varsayılanı `dark` olur.
+- Boş görev ekleme; JSON bozuksa boş varsayılan veriyle aç.
 
 # Yapılmaması gerekenler
-- CDN, Google Fonts, npm paketi veya framework ekleme; düz HTML/CSS/JS kullan.
-- Kodları tek dosyada toplama, yeni `localStorage` anahtarı/sunucu eşitlemesi ekleme veya hata için `alert` kullanma.
+- Google Fonts kullanılabilir; ek bağımlılıkların sürümünü sabitle ve nedenini `README.md` içinde açıkla.
+- Yeni localStorage anahtarı, sunucu eşitlemesi veya hata için `alert` ekleme; görev ve analiz durumunu tek dosyada toplama.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
