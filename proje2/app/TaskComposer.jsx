@@ -19,7 +19,7 @@ export default function TaskComposer({ onAdd }) {
   }
 
   return (
-    <form className="composer flex flex-wrap items-center gap-2 rounded-2xl p-3" onSubmit={submit}>
+    <form className="composer flex flex-wrap items-center gap-2 rounded-2xl p-3 backdrop-blur-2xl backdrop-saturate-150" onSubmit={submit}>
       <label className="sr-only" htmlFor="todo-input">Yeni görev</label>
       <input className="min-w-0 flex-1" id="todo-input" value={text} onChange={(event) => setText(event.target.value)} placeholder="Yeni görev yaz, Enter ile ekle…" maxLength={200} />
       <label className="sr-only" htmlFor="todo-priority">Görev önceliği</label>

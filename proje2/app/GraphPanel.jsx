@@ -1,6 +1,9 @@
 "use client";
 
-import { Background, Controls, Handle, Position, ReactFlow } from "@xyflow/react";
+import { useEffect, useMemo } from "react";
+import { Background, Controls, Handle, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
+
+const EMPTY_TRACE = [];
 
 const positions = {
   __start__: [20, 132],
@@ -74,10 +77,16 @@ function countCategories(todos) {
 }
 
 export default function GraphPanel({ graph, graphError, trace, latestError, todos }) {
-  const nodes = makeNodes(graph, trace ?? []);
-  const edges = makeEdges(graph, trace ?? []);
+  const currentTrace = trace ?? EMPTY_TRACE;
+  const nodes = useMemo(() => makeNodes(graph, currentTrace), [graph, currentTrace]);
+  const edges = useMemo(() => makeEdges(graph, currentTrace), [graph, currentTrace]);
+  const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
+  const [flowEdges, setFlowEdges, onEdgesChange] = useEdgesState(edges);
   const categories = countCategories(todos);
   const total = todos.filter((todo) => todo.analysisAttempted).length;
+
+  useEffect(() => setFlowNodes(nodes), [nodes, setFlowNodes]);
+  useEffect(() => setFlowEdges(edges), [edges, setFlowEdges]);
 
   return (
     <section className="graph-panel" aria-label="LangGraph Paneli">
@@ -88,8 +97,8 @@ export default function GraphPanel({ graph, graphError, trace, latestError, todo
       {graphError ? <p className="error" role="status">Graf yüklenemedi: {graphError}</p> : (
         <>
           <p className="graph-caption">Akış düğümleri · Son analizin geçtiği adımlar ve çıktıları vurgulanır.</p>
-          <div className="graph-canvas" role="img" aria-label="LangGraph düğüm ve bağlantı haritası">
-            {graph && <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.15 }} minZoom={0.25} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} proOptions={{ hideAttribution: true }}>
+          <div className="graph-canvas" role="region" aria-label="Sürüklenebilir LangGraph düğüm ve bağlantı haritası">
+            {graph && <ReactFlow nodes={flowNodes} edges={flowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.15 }} minZoom={0.25} maxZoom={1.5} nodesDraggable nodesConnectable={false} elementsSelectable={false} proOptions={{ hideAttribution: true }}>
               <Background color="var(--border)" gap={22} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>}
