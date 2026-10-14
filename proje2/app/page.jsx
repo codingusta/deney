@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import Button from "./Button";
 import CompletionChart from "./CompletionChart";
+import GlassSettingsPopover from "./GlassSettingsPopover";
 import GraphPanel from "./GraphPanel";
 import TaskComposer from "./TaskComposer";
 import TaskToolbar from "./TaskToolbar";
@@ -27,12 +28,15 @@ export default function Home() {
         <p className="brand">Yapılacaklar</p>
         <h1>Bugün ne yapılacak?</h1>
         <p className="subtitle">Görevlerini ekle, tamamla ve düzenle.</p>
-        <Button className="theme-toggle inline-flex items-center gap-2" type="button" aria-label={app.data.theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} aria-pressed={app.data.theme === "light"} onClick={toggleTheme}>
-          {app.data.theme === "dark" ? <><Sun size={17} /> Açık tema</> : <><Moon size={17} /> Koyu tema</>}
-        </Button>
+        <div className="header-actions">
+          <GlassSettingsPopover glass={app.data.glass} onUpdate={app.setGlassSettings} />
+          <Button className="theme-toggle inline-flex items-center gap-2" type="button" aria-label={app.data.theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} aria-pressed={app.data.theme === "light"} onClick={toggleTheme}>
+            {app.data.theme === "dark" ? <><Sun size={17} /> Açık tema</> : <><Moon size={17} /> Koyu tema</>}
+          </Button>
+        </div>
       </header>
 
-      <motion.div className="app-layout grid items-start gap-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: "easeOut" }}>
+      <div className="app-layout grid items-start gap-4">
         <section className="task-workspace grid min-w-0 gap-3" aria-label="Görev listesi">
           <TaskComposer onAdd={app.addTodo} />
           <TaskToolbar remaining={app.data.todos.filter((todo) => !todo.done).length} searchQuery={app.searchQuery} onSearch={app.setSearchQuery} statusFilter={app.statusFilter} onFilter={app.setStatusFilter} />
@@ -44,7 +48,7 @@ export default function Home() {
           <CompletionChart completionByDay={app.data.completionByDay} />
           <GraphPanel graph={app.graph} graphError={app.graphError} trace={app.latestTrace} latestError={app.latestError || app.error} todos={app.data.todos} />
         </aside>
-      </motion.div>
+      </div>
     </main>
   );
 }
