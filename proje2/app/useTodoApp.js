@@ -35,6 +35,23 @@ export default function useTodoApp() {
 
   useEffect(() => { document.documentElement.dataset.theme = data.theme; }, [data.theme]);
 
+  useEffect(() => {
+    const t = Number.isFinite(data.glass?.transparency) ? data.glass.transparency : 65;
+    const r = Number.isFinite(data.glass?.refraction) ? data.glass.refraction : 60;
+    document.documentElement.style.setProperty("--glass-t", String(t));
+    document.documentElement.style.setProperty("--glass-refraction", String(r));
+  }, [data.glass]);
+
+  function setGlassSettings({ transparency, refraction }) {
+    setData((current) => ({
+      ...current,
+      glass: {
+        transparency: transparency !== undefined ? transparency : current.glass?.transparency ?? 65,
+        refraction: refraction !== undefined ? refraction : current.glass?.refraction ?? 60,
+      },
+    }));
+  }
+
   function patchTodo(id, patch) {
     setData((current) => ({ ...current, todos: current.todos.map((todo) => todo.id === id ? { ...todo, ...patch } : todo) }));
   }
@@ -84,6 +101,6 @@ export default function useTodoApp() {
 
   return {
     data, setData, error, graph, graphError, latestTrace, latestError, searchQuery, setSearchQuery, statusFilter, setStatusFilter,
-    normalizedQuery, visibleTodos, addTodo, patchTodo, setTodoCompleted, moveVisibleTodo,
+    normalizedQuery, visibleTodos, addTodo, patchTodo, setTodoCompleted, moveVisibleTodo, setGlassSettings,
   };
 }

@@ -20,6 +20,10 @@
   --border-strong: rgb(117 235 225 / 42%);
   --glow: rgb(66 232 208 / 13%);
   --shadow: 0 24px 70px rgb(0 0 0 / 32%);
+  --glass-t: 65;
+  --glass-refraction: 60;
+  --card-tint-dark: rgba(20, 32, 45, calc(0.85 - (var(--glass-t) / 100) * 0.68));
+  --card-border-glow-dark: rgba(117, 235, 225, calc(0.18 + (var(--glass-t) / 100) * 0.22));
 }
 
 :root[data-theme="light"] {
@@ -40,6 +44,8 @@
   --border-strong: rgb(8 117 112 / 42%);
   --glow: rgb(8 127 119 / 9%);
   --shadow: 0 18px 48px rgb(40 65 75 / 12%);
+  --card-tint-light: rgba(255, 255, 255, calc(0.88 - (var(--glass-t) / 100) * 0.66));
+  --card-border-glow-light: rgba(8, 127, 119, calc(0.16 + (var(--glass-t) / 100) * 0.20));
 }
 
 * { box-sizing: border-box; }
@@ -71,12 +77,18 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 h1 { margin: .45rem 0; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.045em; line-height: 1.12; }
 .subtitle, .muted { color: var(--muted); }
 .subtitle { margin: .65rem 0 0; }
-.theme-toggle {
+.header-actions {
   position: absolute;
   top: .25rem;
   right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  z-index: 30;
+}
+.theme-toggle, .glass-settings-button {
   min-height: 44px;
-  padding: .6rem .9rem;
+  padding: .6rem .95rem;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: var(--surface);
@@ -85,8 +97,16 @@ h1 { margin: .45rem 0; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.0
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
-.theme-toggle:hover { transform: translateY(-1px); border-color: var(--accent); box-shadow: 0 0 24px var(--glow); }
+.theme-toggle:hover, .glass-settings-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 0 24px var(--glow);
+}
+.theme-toggle {
+  position: static;
+}
 .app-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr); align-items: start; gap: 1rem; }
 .ambient-backdrop { inset: 0; overflow: hidden; pointer-events: none; isolation: isolate; }
 .ambient-spotlight { position: absolute; top: 0; left: 0; width: min(42vw, 34rem); aspect-ratio: 1; margin: max(-21vw, -17rem) 0 0 max(-21vw, -17rem); border-radius: 50%; background: radial-gradient(circle, rgb(54 239 219 / 30%) 0, rgb(89 125 255 / 18%) 34%, rgb(49 183 171 / 8%) 52%, transparent 72%); filter: blur(12px); mix-blend-mode: screen; }
@@ -107,7 +127,7 @@ h1 { margin: .45rem 0; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.0
   100% { border-radius: 35% 65% 55% 45% / 62% 38% 58% 42%; transform: translate3d(3%, 2%, 0) rotate(9deg) scale(1.06); }
 }
 .task-workspace, .insights-workspace { display: grid; min-width: 0; gap: .9rem; }
-.composer, .todo-card, .toolbar, .completion-panel, .graph-panel {
+.composer, .toolbar, .completion-panel, .graph-panel {
   border: 1px solid var(--border);
   border-radius: 1.1rem;
   background: var(--surface);
@@ -140,13 +160,301 @@ h1 { margin: .45rem 0; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.0
 .toolbar .status-filters button.is-selected { border-color: var(--accent-strong); background: var(--accent-strong); color: #061512; box-shadow: 0 0 18px var(--glow); }
 :root[data-theme="light"] .toolbar .status-filters button.is-selected { color: #fff; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.todo-list { display: grid; gap: .65rem; list-style: none; margin: 0; padding: 0; }
-.todo-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55rem; align-items: center; padding: .85rem; transition: border-color 160ms ease, box-shadow 160ms ease; touch-action: pan-y; }
-.todo-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow), 0 0 20px var(--glow); }
-.todo-card { cursor: grab; }
+/* Glass Scene Layer behind the list */
+.todo-list-container {
+  position: relative;
+  min-width: 0;
+  border-radius: 2rem;
+  padding: 0;
+}
+.glass-scene-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 2rem;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.scene-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(52px);
+  opacity: 0.35;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+:root[data-theme="light"] .scene-blob {
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+}
+.scene-blob-1 {
+  top: -12%;
+  left: 8%;
+  width: 290px;
+  height: 290px;
+  background: radial-gradient(circle, #0fd3be, transparent 70%);
+}
+.scene-blob-2 {
+  top: 42%;
+  right: -12%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #8b5cf6, transparent 70%);
+}
+.scene-blob-3 {
+  bottom: -15%;
+  left: 20%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, #38bdf8, transparent 70%);
+}
+.scene-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgb(66 232 208 / 6%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(66 232 208 / 6%) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 65%, transparent 95%);
+}
+:root[data-theme="light"] .scene-grid {
+  background-image:
+    linear-gradient(to right, rgb(8 117 112 / 6%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(8 117 112 / 6%) 1px, transparent 1px);
+}
+.scene-typography {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-left: 1.5rem;
+  pointer-events: none;
+  user-select: none;
+}
+.scene-word {
+  font-size: clamp(3.5rem, 7vw, 6.5rem);
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: rgb(255 255 255 / 3.5%);
+  line-height: 1;
+}
+:root[data-theme="light"] .scene-word {
+  color: rgb(8 117 112 / 5%);
+}
+
+/* Glass Settings Popover */
+.glass-popover-wrapper {
+  position: relative;
+}
+.glass-popover-panel {
+  position: absolute;
+  top: calc(100% + .65rem);
+  right: 0;
+  width: min(320px, calc(100vw - 2rem));
+  padding: 1.15rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 1.35rem;
+  background: var(--surface-strong);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.48), 0 0 0 1px var(--glass-highlight);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  z-index: 100;
+  text-align: left;
+}
+.glass-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .45rem;
+}
+.glass-popover-title {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.glass-popover-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.glass-popover-close:hover {
+  color: var(--foreground);
+  background: var(--surface-input);
+}
+.glass-popover-desc {
+  margin: 0 0 1rem;
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.glass-popover-controls {
+  display: grid;
+  gap: .85rem;
+}
+.glass-slider-row {
+  display: grid;
+  gap: .35rem;
+}
+.glass-slider-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .82rem;
+  font-weight: 600;
+}
+.glass-slider-value {
+  font-family: monospace;
+  color: var(--accent);
+  font-size: .85rem;
+}
+.glass-slider {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.glass-popover-footer {
+  margin-top: 1rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+.glass-reset-button {
+  min-height: 34px !important;
+  padding: .4rem .75rem !important;
+  font-size: .78rem !important;
+  border-radius: .6rem !important;
+  background: var(--surface-input) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--border) !important;
+}
+.glass-reset-button:hover {
+  color: var(--foreground) !important;
+  border-color: var(--border-strong) !important;
+}
+
+/* iOS 27 Liquid Glass Card */
+.todo-card-wrapper {
+  list-style: none;
+  touch-action: pan-y;
+  will-change: transform;
+}
+.glass-card-container {
+  border-radius: 26px;
+  border: 1px solid var(--card-border-glow-dark);
+  background: var(--card-tint-dark);
+  box-shadow: 0 16px 36px rgb(0 0 0 / 28%), inset 0 1px 1px rgb(255 255 255 / 24%), inset 0 -1px 2px rgb(0 0 0 / 22%);
+  position: relative;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+:root[data-theme="light"] .glass-card-container {
+  border: 1px solid var(--card-border-glow-light);
+  background: var(--card-tint-light);
+  box-shadow: 0 12px 30px rgb(40 65 75 / 12%), inset 0 1px 1.5px rgb(255 255 255 / 90%), inset 0 -1px 1.5px rgb(40 65 75 / 8%);
+}
+@supports (corner-shape: squircle) {
+  .glass-card-container {
+    corner-shape: squircle;
+  }
+}
+.glass-specular-highlight {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), rgb(255 255 255 / 14%), transparent 70%);
+  mix-blend-mode: overlay;
+  opacity: 0.9;
+}
+:root[data-theme="light"] .glass-specular-highlight {
+  background: radial-gradient(circle 240px at var(--mx, 50%) var(--my, 50%), rgb(255 255 255 / 45%), transparent 70%);
+  mix-blend-mode: soft-light;
+}
+.glass-bezel-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgb(255 255 255 / 18%) 0%, transparent 35%, transparent 65%, rgb(0 0 0 / 18%) 100%);
+}
+:root[data-theme="light"] .glass-bezel-glow {
+  background: linear-gradient(135deg, rgb(255 255 255 / 55%) 0%, transparent 35%, transparent 70%, rgb(8 117 112 / 8%) 100%);
+}
+.glass-done {
+  opacity: 0.72;
+  filter: saturate(85%);
+}
+
+.todo-list { display: grid; gap: .75rem; list-style: none; margin: 0; padding: 0; }
+.todo-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55rem; align-items: center; padding: .85rem; border: none; background: transparent; box-shadow: none; cursor: grab; }
+.todo-card:hover { border-color: var(--border-strong); }
 .todo-list[data-search-active="true"] .todo-card { cursor: default; }
-.todo-card.is-dragging { opacity: 1 !important; filter: none; cursor: grabbing !important; pointer-events: none; user-select: none; z-index: 50 !important; position: relative; touch-action: none; box-shadow: 0 20px 45px rgb(0 0 0 / 48%), 0 0 0 2px var(--accent), 0 0 30px var(--glow) !important; }
-.drag-handle { color: var(--muted); font-size: 1.25rem; line-height: 1; user-select: none; touch-action: none; }
+
+.todo-card.is-dragging, .todo-card-wrapper.is-active-dragging .todo-card {
+  opacity: 1 !important;
+  cursor: grabbing !important;
+  box-shadow: 0 28px 65px rgb(0 0 0 / 55%), 0 0 0 2px var(--accent), 0 0 35px var(--glow) !important;
+}
+.todo-card-wrapper.is-active-dragging {
+  z-index: 50 !important;
+}
+.drag-handle { color: var(--muted); font-size: 1.25rem; line-height: 1; user-select: none; touch-action: none; cursor: grab; }
+
+/* Text readability contrast & pill controls without nested backdrop-filter */
+.todo-card .task-label {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+}
+:root[data-theme="light"] .todo-card .task-label {
+  text-shadow: 0 1px 1px rgb(255 255 255 / 75%);
+}
+.glass-pill-control, .glass-pill-button, .glass-pill-chip {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid var(--border);
+}
+:root[data-theme="light"] .glass-pill-control,
+:root[data-theme="light"] .glass-pill-button,
+:root[data-theme="light"] .glass-pill-chip {
+  background: rgb(0 0 0 / 4%);
+}
+.glass-pill-button:hover {
+  background: rgb(255 255 255 / 14%);
+  border-color: var(--accent);
+}
+
+/* Dragging lock & selection prevention */
+body.is-dragging, body.is-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+body.is-dragging {
+  cursor: grabbing !important;
+}
+body.is-dragging .todo-card-wrapper:not(.is-active-dragging) .glass-card-container:hover {
+  border-color: var(--card-border-glow-dark) !important;
+  box-shadow: 0 16px 36px rgb(0 0 0 / 28%), inset 0 1px 1px rgb(255 255 255 / 24%) !important;
+}
+.todo-card svg {
+  pointer-events: none;
+}
 .task-main-row { display: flex; min-width: 0; align-items: center; gap: .65rem; }
 .task-content { display: flex; min-width: 0; flex: 1; align-items: center; gap: .7rem; }
 .task-trailing { display: flex; flex: 0 0 auto; align-items: center; gap: .65rem; }
@@ -235,7 +543,7 @@ h1 { margin: .45rem 0; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.0
 @media (max-width: 600px) {
   .page-shell { width: calc(100% - 1.25rem); padding-top: 1.25rem; }
   .page-header { padding: 3.4rem .25rem 0; margin-bottom: 1.2rem; }
-  .theme-toggle { top: 0; right: 0; }
+  .header-actions { top: 0; right: 0; }
   .composer, .toolbar { align-items: stretch; flex-direction: column; }
   .composer input, .composer select, .composer button, .composer input[type="date"], .toolbar button { width: 100%; max-width: none; }
   .search-control { min-width: 0; }

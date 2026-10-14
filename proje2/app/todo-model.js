@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "proje2-todos";
-export const DEFAULT_DATA = { version: 1, todos: [], theme: "dark", completionByDay: {} };
+export const DEFAULT_DATA = { version: 1, todos: [], theme: "dark", completionByDay: {}, glass: { transparency: 65, refraction: 60 } };
 
 export function normalizeTodo(todo, index) {
   return {
@@ -56,6 +56,10 @@ export function readSavedData() {
         ...saved,
         theme: ["dark", "light"].includes(saved.theme) ? saved.theme : "dark",
         todos: saved.todos.filter(isValidTodo).map(normalizeTodo),
+        glass: {
+          transparency: Number.isFinite(saved.glass?.transparency) ? Math.min(100, Math.max(0, saved.glass.transparency)) : 65,
+          refraction: Number.isFinite(saved.glass?.refraction) ? Math.min(100, Math.max(0, saved.glass.refraction)) : 60,
+        },
       };
     }
   } catch {
