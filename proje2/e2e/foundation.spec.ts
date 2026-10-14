@@ -2,6 +2,23 @@ import { expect, test } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
+async function dragTask(page, sourceId, targetId, targetRatio = 0.8) {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  const sourceLocator = page.locator(`[data-task-id="${sourceId}"] .task-label`);
+  await sourceLocator.scrollIntoViewIfNeeded();
+  const initialSource = await sourceLocator.boundingBox();
+  if (!initialSource) throw new Error("Sürükleme başlangıç görevi görünür olmalı.");
+  await page.evaluate((top) => window.scrollBy(0, top - 120), initialSource.y);
+  const source = await sourceLocator.boundingBox();
+  const target = await page.locator(`[data-task-id="${targetId}"]`).boundingBox();
+  if (!source || !target) throw new Error("Sürükleme görev kartları görünür olmalı.");
+
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(target.x + target.width / 2, target.y + target.height * targetRatio, { steps: 24 });
+  await page.mouse.up();
+}
+
 test("task CRUD persists in the versioned localStorage envelope", async ({ page }) => {
   await page.goto(baseURL);
   await page.getByLabel("Yeni görev").fill("Read the Next.js guide");
@@ -187,19 +204,16 @@ test("visible tasks can be reordered without changing hidden task order", async 
   await page.reload();
   await page.getByRole("button", { name: "Aktif", exact: true }).click();
 
-  const cards = page.locator(".todo-card");
-  await cards.filter({ hasText: "Aktif A" }).dragTo(cards.filter({ hasText: "Aktif C" }), {
-    targetPosition: { x: 20, y: 60 },
-  });
-  await expect(page.locator(".todo-card .task-label")).toHaveText(["Aktif B", "Aktif C", "Aktif A"]);
+  await dragTask(page, "active-a", "active-b");
+  await expect(page.locator(".todo-card .task-label")).toHaveText(["Aktif B", "Aktif A", "Aktif C"]);
 
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("proje2-todos") ?? "null"));
   expect(stored.todos.slice().sort((a, b) => a.order - b.order).map((todo) => todo.text)).toEqual([
-    "Aktif B", "Tamam A", "Aktif C", "Tamam B", "Aktif A",
+    "Aktif B", "Tamam A", "Aktif A", "Tamam B", "Aktif C",
   ]);
   await page.reload();
   await page.getByRole("button", { name: "Aktif", exact: true }).click();
-  await expect(page.locator(".todo-card .task-label")).toHaveText(["Aktif B", "Aktif C", "Aktif A"]);
+  await expect(page.locator(".todo-card .task-label")).toHaveText(["Aktif B", "Aktif A", "Aktif C"]);
 });
 
 test("keyboard controls reorder completed tasks in their filtered list", async ({ page }) => {
@@ -233,7 +247,9 @@ test("search results cannot be dragged to avoid ambiguous reorder", async ({ pag
   })));
   await page.reload();
   await page.getByRole("searchbox", { name: "Görevlerde ara" }).fill("rapor");
-  await expect(page.locator(".todo-card").first()).toHaveAttribute("draggable", "false");
+  await dragTask(page, "first", "second");
+  await expect(page.locator(".todo-card .task-label")).toHaveText(["Rapor A", "Rapor B"]);
+  await expect(page.locator(".todo-list")).toHaveAttribute("data-search-active", "true");
 });
 
 test("all tasks can be reordered by dragging in the Hepsi filter", async ({ page }) => {
@@ -246,9 +262,6 @@ test("all tasks can be reordered by dragging in the Hepsi filter", async ({ page
     ],
   })));
   await page.reload();
-  const cards = page.locator(".todo-card");
-  await cards.filter({ hasText: "İlk görev" }).dragTo(cards.filter({ hasText: "Üçüncü görev" }), {
-    targetPosition: { x: 20, y: 60 },
-  });
-  await expect(page.locator(".todo-card .task-label")).toHaveText(["İkinci görev", "Üçüncü görev", "İlk görev"]);
+  await dragTask(page, "first", "second");
+  await expect(page.locator(".todo-card .task-label")).toHaveText(["İkinci görev", "İlk görev", "Üçüncü görev"]);
 });
