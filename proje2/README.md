@@ -1,4 +1,4 @@
-Markdown
+
 ## 📄 Licensing & Commercial Use
 
 This project is licensed under the **PolyForm Noncommercial License 1.0.0** (Free for personal, educational, and noncommercial use).
