@@ -1,5 +1,7 @@
 # Deney - Personal iOS Application & Security Research Project
 
+kemal88kaya@gmail.com is owner of this repo
+
 **Deney** is a personal iOS application and software development project focused on defensive security testing, static code auditing, and secure coding practices.
 
 ## 🎯 Project Scope & Security Objectives
